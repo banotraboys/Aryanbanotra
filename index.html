@@ -1,0 +1,254 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotesAdda - Search Anything</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes hackerAlert {
+            0% { transform: scale(1); background-color: #000; }
+            50% { transform: scale(1.05); background-color: #f00; }
+            100% { transform: scale(1); background-color: #000; }
+        }
+        
+        .alert-animation {
+            animation: hackerAlert 0.5s infinite alternate;
+        }
+        
+        .glitch {
+            position: relative;
+            color: white;
+            font-size: 2rem;
+            text-shadow: 0.05em 0 0 #00fffc, -0.05em -0.025em 0 #fc00ff;
+            animation: glitch 500ms infinite;
+        }
+        
+        @keyframes glitch {
+            0% { text-shadow: 0.05em 0 0 #00fffc, -0.05em -0.025em 0 #fc00ff; }
+            25% { text-shadow: -0.05em -0.025em 0 #00fffc, 0.05em 0 0 #fc00ff; }
+            50% { text-shadow: 0.025em 0 0 #00fffc, -0.025em -0.05em 0 #fc00ff; }
+            75% { text-shadow: -0.025em -0.05em 0 #00fffc, 0.025em 0 0 #fc00ff; }
+            100% { text-shadow: 0.05em 0 0 #00fffc, -0.05em -0.025em 0 #fc00ff; }
+        }
+        
+        .hacker-signature {
+            font-family: 'Courier New', monospace;
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+            font-size: 1.5rem;
+            position: relative;
+        }
+
+        .hacker-signature::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #0f0, transparent);
+            animation: scanline 2s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); } 
+        }
+
+        .password-animation {
+            font-family: monospace;
+            color: #0f0;
+            overflow: hidden;
+            border-right: 2px solid #0f0;
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 2s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #0f0 }
+        }
+        
+        .hacker-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            opacity: 0.1;
+            background-image: 
+                linear-gradient(rgba(0, 255, 0, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.2) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .binary-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen flex flex-col">
+    <!-- Binary rain background effect -->
+    <canvas id="binaryRain" class="binary-rain"></canvas>
+    
+    <header class="py-6 bg-gray-900 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/29f27d64-4933-407a-8b09-d71bf8596ca0.png" alt="NotesAdda logo - minimalist notebook icon with digital stylization" class="mr-3">
+                    <h1 class="text-2xl font-bold text-green-400">notesadda.com</h1>
+                </div>
+                <nav class="hidden md:block">
+                    <ul class="flex space-x-6">
+                        <li><a href="#" class="hover:text-green-400 transition">Home</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">About</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-12 flex flex-col items-center">
+        <div class="w-full max-w-2xl text-center mb-8">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Search Anything on NotesAdda</h2>
+            <p class="text-lg text-gray-400 mb-8">The ultimate search experience powered by our proprietary technology</p>
+            
+            <div class="relative w-full">
+                <div class="flex">
+                    <input type="text" id="searchInput" placeholder="Enter your search query..." class="flex-grow py-3 px-4 bg-gray-800 text-white rounded-l-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <button id="searchButton" class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-r-lg transition">
+                        Search
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search results section -->
+        <div id="searchResults" class="w-full max-w-4xl hidden">
+            <!-- This will be populated by JS -->
+        </div>
+
+        <!-- Futuristic hacker grid -->
+        <div class="hacker-grid w-full h-full"></div>
+
+        <!-- Hacker warning section (hidden by default) -->
+        <div id="hackerWarning" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center hidden z-50">
+            <div class="w-full max-w-2xl p-8 rounded-lg text-center">
+                <h2 class="text-5xl font-bold mb-6 glitch">WARNING!</h2>
+                <div class="alert-animation p-4 mb-6 rounded-lg">
+                    <p class="text-3xl font-bold mb-2">YOUR PHONE IS HACKED</p>
+                    <p class="text-3xl font-bold">YOUR PHONE IS HACKED</p>
+                </div>
+                <div class="glitch mb-6 text-3xl font-bold">
+                    HACKED BY: <span class="text-red-500">ARYAN HACKER</span>
+                </div>
+                <div class="password-animation mb-6">
+                    System breach complete: Remote access obtained by elite hacker
+                </div>
+                <div class="bg-gray-900 p-4 rounded-lg mb-6 text-left">
+                    <p class="mb-2">Device vulnerabilities detected:</p>
+                    <ul class="list-disc pl-5 text-red-400">
+                        <li>Root access obtained</li>
+                        <li>Camera control acquired</li>
+                        <li>Microphone access activated</li>
+                        <li>File system scanned</li>
+                    </ul>
+                </div>
+                <div class="flex justify-center space-x-4">
+                    <button id="closeWarning" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg transition">
+                        DISMISS (NOT SAFE)
+                    </button>
+                    <button class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition">
+                        CALL SUPPORT
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-6 bg-gray-900 mt-12 border-t border-green-900">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-400 mb-2">© 2023 notesadda.com - All rights reserved</p>
+            <p class="text-sm text-gray-600">Advanced security monitoring active</p>
+        </div>
+    </footer>
+
+    <script>
+        // Binary rain effect
+        const canvas = document.getElementById('binaryRain');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const binaryChars = '01';
+        const columns = Math.floor(canvas.width / 15);
+        const drops = [];
+        
+        for(let i = 0; i < columns; i++) {
+            drops[i] = Math.floor(Math.random() * canvas.height);
+        }
+        
+        function drawBinaryRain() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#0f0';
+            ctx.font = '15px monospace';
+            
+            for(let i = 0; i < drops.length; i++) {
+                const text = binaryChars.charAt(Math.floor(Math.random() * binaryChars.length));
+                ctx.fillText(text, i * 15, drops[i] * 15);
+                
+                if(drops[i] * 15 > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                
+                drops[i]++;
+            }
+        }
+        
+        setInterval(drawBinaryRain, 33);
+        
+        // Search functionality
+        document.getElementById('searchButton').addEventListener('click', function() {
+            const searchInput = document.getElementById('searchInput').value;
+            const searchResults = document.getElementById('searchResults');
+            
+            if(searchInput.trim() !== '') {
+                // Show the hacker warning regardless of search term
+                document.getElementById('hackerWarning').classList.remove('hidden');
+            }
+        });
+        
+        // Close warning button
+        document.getElementById('closeWarning').addEventListener('click', function() {
+            document.getElementById('hackerWarning').classList.add('hidden');
+        });
+        
+        // Also trigger search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if(e.key === 'Enter') {
+                document.getElementById('searchButton').click();
+            }
+        });
+    </script>
+</body>
+</html>
+
+```
